@@ -166,9 +166,11 @@ def randomize_traits(max_points: int = 10) -> Dict[str, Union[List[str], int]]:
         'points_remaining': remaining_points
     }
 
+from flask import Flask, render_template  # Add render_template to imports
+
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html')  # Changed from render_template_string
 
 @app.route('/api/randomize', methods=['POST'])
 def api_randomize():

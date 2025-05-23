@@ -12,6 +12,8 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+RUN mkdir -p templates  # Ensure templates directory exists
+
 COPY . .
 
 CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
