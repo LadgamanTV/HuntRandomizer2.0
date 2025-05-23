@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hunt: Showdown Loadout Randomizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* Color Palette */
+            --hunt-dark: #0D0802;
+            --hunt-darker: #070401;
+            --hunt-red: #6B2525;
+            --hunt-gold: #C8AA6E;
+            --hunt-light: #E8DFD0;
+            --hunt-border: #4A3C2A;
+            
+            /* Sizing */
+            --card-spacing: 0.75rem;
+            --border-radius: 5px;
+            --base-font-size: 1.05rem;
+        }
+        
+        body {
+            font-family: 'IM Fell English SC', serif;
+            font-size: var(--base-font-size);
+            background-color: var(--hunt-dark);
+            color: var(--hunt-light);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        h1, h2 {
+            color: var(--hunt-gold);
+            font-family: 'Cinzel Decorative', cursive;
+            margin: 0;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            text-align: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--hunt-gold);
+            margin-bottom: 1rem;
+        }
+        
+        /* Main Loadout Area - Compact Grid */
+        .loadout-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        
+        .loadout-section {
+            background-color: rgba(7, 4, 1, 0.7);
+            border: 1px solid var(--hunt-border);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .loadout-title {
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .loadout-grid {
+            display: grid;
+            gap: var(--card-spacing);
+            flex-grow: 1;
+        }
+        
+        /* Weapons Section - Stacked Vertically */
+        #weapons-section .loadout-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        /* Tools & Consumables Side by Side */
+        .tools-consumables {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        /* Traits Section - Dynamic Height */
+        #traits-section {
+            flex-grow: 1;
+            min-height: 150px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        #traits-section .loadout-grid {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            overflow: visible;
+        }
+        
+        .loadout-item {
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--hunt-border);
+            border-radius: var(--border-radius);
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            min-height: 60px;
+        }
+        
+        .item-name {
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-slot {
+            font-size: 0.8rem;
+            color: var(--hunt-gold);
+            margin-top: 0.2rem;
+            text-transform: uppercase;
+        }
+        
+        .item-ammo {
+            font-size: 0.95rem;
+            color: var(--hunt-gold);
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        button {
+            background-color: var(--hunt-red);
+            color: var(--hunt-light);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            background-color: var(--hunt-gold);
+            color: var(--hunt-dark);
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        input[type="number"] {
+            width: 60px;
+            padding: 0.4rem;
+            font-size: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--hunt-border);
+            color: var(--hunt-light);
+            border-radius: var(--border-radius);
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            :root {
+                --base-font-size: 1rem;
+            }
+            
+            .tools-consumables {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0.75rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HUNT: SHOWDOWN LOADOUT RANDOMIZER</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <button id="randomize-all"><i class="fas fa-dice"></i> All</button>
+                <button id="randomize-weapons"><i class="fas fa-gun"></i> Weapons</button>
+                <button id="randomize-tools"><i class="fas fa-toolbox"></i> Tools</button>
+                <button id="randomize-consumables"><i class="fas fa-prescription-bottle"></i> Consumables</button>
+            </div>
+            
+            <div class="control-group">
+                <div class="toggle-container">
+                    <input type="checkbox" id="quartermaster">
+                    <label for="quartermaster">QM</label>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="allow_duplicates">
+                    <label for="allow_duplicates">Dupes</label>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="allow_special_ammo">
+                    <label for="allow_special_ammo">Sp.Ammo</label>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="force_first_aid" checked>
+                    <label for="force_first_aid">Medkit</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="loadout-container">
+            <!-- Weapons Section -->
+            <div class="loadout-section" id="weapons-section">
+                <div class="loadout-title">
+                    <h2><i class="fas fa-gun"></i> WEAPONS</h2>
+                    <button id="swap-weapons" style="margin-left: auto;"><i class="fas fa-exchange-alt"></i> Swap</button>
+                </div>
+                <div class="loadout-grid">
+                    <div class="loadout-item" id="primary-weapon">
+                        <div class="item-name">-</div>
+                        <div class="item-slot"></div>
+                        <div class="item-ammo"></div>
+                    </div>
+                    <div class="loadout-item" id="secondary-weapon">
+                        <div class="item-name">-</div>
+                        <div class="item-slot"></div>
+                        <div class="item-ammo"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tools & Consumables Section -->
+            <div class="tools-consumables">
+                <!-- Tools Section -->
+                <div class="loadout-section" id="tools-section">
+                    <div class="loadout-title">
+                        <h2><i class="fas fa-toolbox"></i> TOOLS</h2>
+                    </div>
+                    <div class="loadout-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        <div class="loadout-item" id="tool-1">
+                            <div class="item-name">-</div>
+                        </div>
+                        <div class="loadout-item" id="tool-2">
+                            <div class="item-name">-</div>
+                        </div>
+                        <div class="loadout-item" id="tool-3">
+                            <div class="item-name">-</div>
+                        </div>
+                        <div class="loadout-item" id="tool-4">
+                            <div class="item-name">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Consumables Section -->
+                <div class="loadout-section" id="consumables-section">
+                    <div class="loadout-title">
+                        <h2><i class="fas fa-prescription-bottle"></i> CONSUMABLES</h2>
+                    </div>
+                    <div class="loadout-grid" style="grid-template-columns: repeat(2, 1fr);">
+                        <div class="loadout-item" id="consumable-1">
+                            <div class="item-name">-</div>
+                        </div>
+                        <div class="loadout-item" id="consumable-2">
+                            <div class="item-name">-</div>
+                        </div>
+                        <div class="loadout-item" id="consumable-3">
+                            <div class="item-name">-</div>
+                        </div>
+                        <div class="loadout-item" id="consumable-4">
+                            <div class="item-name">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Traits Section - Dynamic Height -->
+            <div class="loadout-section" id="traits-section">
+                <div class="loadout-title">
+                    <h2><i class="fas fa-star"></i> TRAITS</h2>
+                    <div style="margin-left: auto; display: flex; gap: 0.75rem; align-items: center;">
+                        <input type="number" id="trait_points" min="1" max="50" value="10">
+                        <button id="randomize-traits"><i class="fas fa-random"></i> Randomize</button>
+                    </div>
+                </div>
+                <div class="loadout-grid" id="traits-grid">
+                    <div class="loadout-item" style="grid-column: 1 / -1; text-align: center;">
+                        <div class="item-name">No traits selected</div>
+                    </div>
+                </div>
+                <div style="text-align: right; font-size: 1rem; color: var(--hunt-gold); margin-top: 0.5rem;">
+                    Points: <span id="trait-points-display">0/10</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        const state = {
+            currentLoadout: {
+                primary_weapon: "-",
+                secondary_weapon: "-",
+                primary_type: "",
+                secondary_type: "",
+                is_dual: false,
+                ammo: {},
+                tools: ["-", "-", "-", "-"],
+                consumables: ["-", "-", "-", "-"],
+                traits: {
+                    traits: [],
+                    points_used: 0
+                }
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updateUI();
+        });
+
+        function setupEventListeners() {
+            // Randomize buttons
+            document.getElementById('randomize-all').addEventListener('click', randomizeAll);
+            document.getElementById('randomize-weapons').addEventListener('click', randomizeWeapons);
+            document.getElementById('randomize-tools').addEventListener('click', randomizeTools);
+            document.getElementById('randomize-consumables').addEventListener('click', randomizeConsumables);
+            document.getElementById('randomize-traits').addEventListener('click', randomizeTraits);
+            document.getElementById('swap-weapons').addEventListener('click', swapWeapons);
+        }
+
+        async function randomizeAll() {
+            try {
+                const response = await fetch('/api/randomize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        quartermaster: document.getElementById('quartermaster').checked,
+                        allow_duplicates: document.getElementById('allow_duplicates').checked,
+                        allow_special_ammo: document.getElementById('allow_special_ammo').checked,
+                        force_first_aid: document.getElementById('force_first_aid').checked,
+                        trait_points: parseInt(document.getElementById('trait_points').value)
+                    })
+                });
+                
+                state.currentLoadout = await response.json();
+                updateUI();
+                animateRefresh();
+            } catch (error) {
+                console.error('Error randomizing all:', error);
+            }
+        }
+
+        async function randomizeWeapons() {
+            try {
+                const response = await fetch('/api/randomize-weapons', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        quartermaster: document.getElementById('quartermaster').checked,
+                        allow_duplicates: document.getElementById('allow_duplicates').checked,
+                        allow_special_ammo: document.getElementById('allow_special_ammo').checked
+                    })
+                });
+                
+                const data = await response.json();
+                state.currentLoadout.primary_weapon = data.primary.name;
+                state.currentLoadout.primary_type = data.primary.type;
+                state.currentLoadout.secondary_weapon = data.secondary.name;
+                state.currentLoadout.secondary_type = data.secondary.type;
+                state.currentLoadout.is_dual = data.secondary.is_dual;
+                state.currentLoadout.ammo = data.ammo;
+                
+                updateUI();
+                animateRefresh('weapons');
+            } catch (error) {
+                console.error('Error randomizing weapons:', error);
+            }
+        }
+
+        async function randomizeTools() {
+            try {
+                const response = await fetch('/api/randomize-tools', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        force_first_aid: document.getElementById('force_first_aid').checked
+                    })
+                });
+                
+                const data = await response.json();
+                state.currentLoadout.tools = data.tools;
+                updateUI();
+                animateRefresh('tools');
+            } catch (error) {
+                console.error('Error randomizing tools:', error);
+            }
+        }
+
+        async function randomizeConsumables() {
+            try {
+                const response = await fetch('/api/randomize-consumables', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                state.currentLoadout.consumables = data.consumables;
+                updateUI();
+                animateRefresh('consumables');
+            } catch (error) {
+                console.error('Error randomizing consumables:', error);
+            }
+        }
+
+        async function randomizeTraits() {
+            try {
+                const traitPoints = parseInt(document.getElementById('trait_points').value) || 10;
+                const response = await fetch('/api/randomize-traits', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        trait_points: traitPoints
+                    })
+                });
+                
+                const data = await response.json();
+                state.currentLoadout.traits = data;
+                updateUI();
+                animateRefresh('traits');
+            } catch (error) {
+                console.error('Error randomizing traits:', error);
+            }
+        }
+
+        function swapWeapons() {
+            if (!state.currentLoadout.primary_weapon || !state.currentLoadout.secondary_weapon) return;
+            
+            // Swap weapons
+            [state.currentLoadout.primary_weapon, state.currentLoadout.secondary_weapon] = 
+                [state.currentLoadout.secondary_weapon, state.currentLoadout.primary_weapon];
+            
+            // Swap weapon types
+            [state.currentLoadout.primary_type, state.currentLoadout.secondary_type] = 
+                [state.currentLoadout.secondary_type, state.currentLoadout.primary_type];
+            
+            updateUI();
+            animateRefresh('weapons');
+        }
+
+        function animateRefresh(section = 'all') {
+            const sections = {
+                'all': [
+                    document.getElementById('weapons-section'),
+                    document.getElementById('tools-section'),
+                    document.getElementById('consumables-section')
+                ],
+                'weapons': [document.getElementById('weapons-section')],
+                'tools': [document.getElementById('tools-section')],
+                'consumables': [document.getElementById('consumables-section')],
+                'traits': [document.getElementById('traits-section')]
+            };
+            
+            const elementsToAnimate = sections[section] || sections['all'];
+            
+            elementsToAnimate.forEach((section, index) => {
+                if (!section) return;
+                setTimeout(() => {
+                    section.style.transform = 'translateY(-5px)';
+                    setTimeout(() => {
+                        section.style.transform = 'translateY(0)';
+                    }, 200);
+                }, index * 50);
+            });
+        }
+
+        function updateUI() {
+            // Update weapons
+            updateWeaponUI(
+                document.getElementById('primary-weapon'), 
+                state.currentLoadout.primary_weapon, 
+                state.currentLoadout.primary_type,
+                state.currentLoadout.ammo[state.currentLoadout.primary_weapon],
+                false
+            );
+            
+            updateWeaponUI(
+                document.getElementById('secondary-weapon'), 
+                state.currentLoadout.secondary_weapon,
+                state.currentLoadout.secondary_type,
+                state.currentLoadout.ammo[state.currentLoadout.secondary_weapon],
+                state.currentLoadout.is_dual
+            );
+            
+            // Update tools
+            state.currentLoadout.tools.forEach((tool, i) => {
+                const toolElement = document.getElementById(`tool-${i+1}`);
+                toolElement.innerHTML = '<div class="item-name">' + tool + '</div>';
+            });
+            
+            // Update consumables
+            state.currentLoadout.consumables.forEach((consumable, i) => {
+                const consumableElement = document.getElementById(`consumable-${i+1}`);
+                consumableElement.innerHTML = '<div class="item-name">' + consumable + '</div>';
+            });
+            
+            // Update traits
+            updateTraitsUI();
+        }
+
+        function updateWeaponUI(element, name, slotType, ammo, isDual) {
+            if (!element) return;
+            
+            element.innerHTML = `
+                <div class="item-name">${name}</div>
+                <div class="item-slot">${slotType}</div>
+                <div class="item-ammo">${isDual ? 'DUAL WIELD' : (ammo !== 'Standard' ? ammo : '')}</div>
+            `;
+            
+            if (isDual) {
+                element.classList.add('dual');
+            } else {
+                element.classList.remove('dual');
+            }
+        }
+
+        function updateTraitsUI() {
+            const traitsGrid = document.getElementById('traits-grid');
+            if (!traitsGrid) return;
+            
+            traitsGrid.innerHTML = '';
+            
+            if (state.currentLoadout.traits.traits.length === 0) {
+                traitsGrid.innerHTML = `
+                    <div class="loadout-item" style="grid-column: 1 / -1; text-align: center;">
+                        <div class="item-name">No traits selected</div>
+                    </div>
+                `;
+            } else {
+                state.currentLoadout.traits.traits.forEach((trait) => {
+                    const traitElement = document.createElement('div');
+                    traitElement.className = 'loadout-item';
+                    traitElement.innerHTML = `
+                        <div class="item-name">
+                            <i class="fas fa-star" style="color: var(--hunt-gold); margin-right: 0.5rem;"></i>
+                            ${trait}
+                        </div>
+                    `;
+                    traitsGrid.appendChild(traitElement);
+                });
+            }
+            
+            const pointsDisplay = document.getElementById('trait-points-display');
+            if (pointsDisplay) {
+                pointsDisplay.textContent = 
+                    `${state.currentLoadout.traits.points_used}/${document.getElementById('trait_points').value}`;
+            }
+            
+            // Adjust traits section height based on content
+            const traitsSection = document.getElementById('traits-section');
+            if (traitsSection) {
+                const traitsCount = state.currentLoadout.traits.traits.length;
+                const minHeight = 150;
+                const rowHeight = 60; // Approximate height per trait
+                const maxHeight = Math.min(minHeight + (traitsCount * rowHeight), 400);
+                traitsSection.style.minHeight = `${maxHeight}px`;
+            }
+        }
+    </script>
+</body>
+</html>
